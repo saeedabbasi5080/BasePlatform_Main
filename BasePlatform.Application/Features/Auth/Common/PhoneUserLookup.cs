@@ -15,4 +15,7 @@ public static class PhoneUserLookup
 
     public static string BuildSyntheticEmail(string normalizedPhone)
         => $"{normalizedPhone[1..]}@phone.local";
+
+    public static bool IsPhoneAuthUser(AppUser user)
+        => user.Email?.EndsWith("@phone.local", StringComparison.OrdinalIgnoreCase) == true;
 }

@@ -1,4 +1,4 @@
-@BasePlatform.Api_HostAddress = http://localhost:5273
+@BasePlatform.Api_HostAddress = http://localhost:5280
 
 GET {{BasePlatform.Api_HostAddress}}/weatherforecast/
 Accept: application/json

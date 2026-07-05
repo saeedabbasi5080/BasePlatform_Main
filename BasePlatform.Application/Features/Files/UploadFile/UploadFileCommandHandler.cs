@@ -71,10 +71,10 @@ public sealed class UploadFileCommandHandler
                 command.ContentType,
                 cancellationToken);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return Result<UploadFileResponse>.Failure(
-                Error.Failure("Files.UploadFailed", $"File upload failed: {ex.Message}"));
+                Error.Failure("Files.UploadFailed", "File upload failed."));
         }
 
         var storedFile = new StoredFile
@@ -98,7 +98,6 @@ public sealed class UploadFileCommandHandler
             storedFile.OriginalFileName,
             storedFile.ContentType,
             storedFile.FileSizeBytes,
-            storedFile.StoragePath,
             storedFile.StorageProvider,
             storedFile.CreatedAt));
     }

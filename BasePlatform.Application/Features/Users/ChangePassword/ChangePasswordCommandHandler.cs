@@ -1,4 +1,5 @@
 ﻿using BasePlatform.Application.Common.Abstractions;
+using BasePlatform.Application.Features.Auth.Common;
 using BasePlatform.Domain.Entities;
 using BasePlatform.Shared;
 using Microsoft.AspNetCore.Identity;
@@ -32,8 +33,25 @@ public sealed class ChangePasswordCommandHandler
             return Result.Failure(
                 Error.NotFound("Users.NotFound", "User not found."));
 
-        var result = await _userManager.ChangePasswordAsync(
-            user, command.CurrentPassword, command.NewPassword);
+        var isPhoneUser = PhoneUserLookup.IsPhoneAuthUser(user);
+
+        if (!isPhoneUser && string.IsNullOrWhiteSpace(command.CurrentPassword))
+        {
+            return Result.Failure(
+                Error.Validation("Users.CurrentPasswordRequired", "Current password is required."));
+        }
+
+        IdentityResult result;
+        if (isPhoneUser)
+        {
+            var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+            result = await _userManager.ResetPasswordAsync(user, resetToken, command.NewPassword);
+        }
+        else
+        {
+            result = await _userManager.ChangePasswordAsync(
+                user, command.CurrentPassword, command.NewPassword);
+        }
 
         if (!result.Succeeded)
         {

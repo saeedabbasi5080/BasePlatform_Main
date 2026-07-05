@@ -20,6 +20,29 @@ namespace BasePlatform.Infrastructure.Persistence.Configurations
                 .HasMaxLength(100)
                 .IsRequired();
 
+            builder.Property(u => u.Bio)
+                .HasMaxLength(1000)
+                .IsRequired()
+                .HasDefaultValue(string.Empty);
+
+            builder.Property(u => u.ProfilePhotoUrl)
+                .HasMaxLength(2048)
+                .IsRequired()
+                .HasDefaultValue(string.Empty);
+
+            builder.Property(u => u.Address)
+                .HasMaxLength(500)
+                .IsRequired()
+                .HasDefaultValue(string.Empty);
+
+            builder.Property(u => u.JobTitle)
+                .HasMaxLength(200)
+                .IsRequired()
+                .HasDefaultValue(string.Empty);
+
+            builder.Property(u => u.Gender)
+                .HasConversion<int?>();
+
             builder.Property(u => u.IsActive)
                 .IsRequired()
                 .HasDefaultValue(true);

@@ -2,11 +2,13 @@
 using BasePlatform.Application.Common.Abstractions;
 using BasePlatform.Application.Features.Users.AssignRole;
 using BasePlatform.Application.Features.Users.ChangePassword;
+using BasePlatform.Application.Features.Users.CreateUser;
 using BasePlatform.Application.Features.Users.DeactivateUser;
 using BasePlatform.Application.Features.Users.GetAllUsers;
 using BasePlatform.Application.Features.Users.GetCurrentUser;
 using BasePlatform.Application.Features.Users.GetUserById;
 using BasePlatform.Application.Features.Users.UpdateProfile;
+using BasePlatform.Application.Features.Users.UploadProfilePhoto;
 using BasePlatform.Domain.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -32,6 +34,19 @@ public sealed class UsersController : ApiControllerBase
             new GetCurrentUserQuery(), cancellationToken);
 
         return result.IsSuccess ? Ok(result.Value) : Problem(result);
+    }
+
+    // POST api/users
+    [HttpPost]
+    [Authorize(Policy = Permissions.UsersCreate)]
+    public async Task<IActionResult> CreateUser(
+        [FromBody] CreateUserCommand command,
+        CancellationToken cancellationToken)
+    {
+        var result = await _dispatcher.SendAsync(command, cancellationToken);
+        return result.IsSuccess
+            ? CreatedAtAction(nameof(GetUserById), new { id = result.Value!.Id }, result.Value)
+            : Problem(result);
     }
 
     // GET api/users/{id}
@@ -68,7 +83,30 @@ public sealed class UsersController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         var result = await _dispatcher.SendAsync(command, cancellationToken);
-        return result.IsSuccess ? NoContent() : Problem(result);
+        return result.IsSuccess ? Ok(result.Value) : Problem(result);
+    }
+
+    // POST api/users/me/profile-photo
+    [HttpPost("me/profile-photo")]
+    [RequestSizeLimit(5_242_880)] // 5 MB
+    public async Task<IActionResult> UploadProfilePhoto(
+        IFormFile file,
+        CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new ApiErrorResponse("No file provided.", "ProfilePhoto.EmptyFile"));
+
+        await using var stream = file.OpenReadStream();
+
+        var result = await _dispatcher.SendAsync(
+            new UploadProfilePhotoCommand(
+                stream,
+                file.FileName,
+                file.ContentType,
+                file.Length),
+            cancellationToken);
+
+        return result.IsSuccess ? Ok(result.Value) : Problem(result);
     }
 
     // POST api/users/me/change-password

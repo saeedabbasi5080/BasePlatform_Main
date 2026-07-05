@@ -14,6 +14,7 @@ using BasePlatform.Application.Features.Auth.ResetPassword;
 using BasePlatform.Application.Features.Auth.VerifyResetCode;
 using BasePlatform.Application.Features.Files.GetFiles;
 using BasePlatform.Application.Features.Files.DeleteFile;
+using BasePlatform.Application.Features.Files.DownloadFile;
 using BasePlatform.Application.Features.Files.GetFileById;
 using BasePlatform.Application.Features.Files.UploadFile;
 using BasePlatform.Application.Features.Permissions.AssignPermissionsToRole;
@@ -29,15 +30,18 @@ using BasePlatform.Application.Features.Settings.GetSettings;
 using BasePlatform.Application.Features.Settings.UpsertSetting;
 using BasePlatform.Application.Features.Users.AssignRole;
 using BasePlatform.Application.Features.Users.ChangePassword;
+using BasePlatform.Application.Features.Users.CreateUser;
 using BasePlatform.Application.Features.Users.DeactivateUser;
 using BasePlatform.Application.Features.Users.GetAllUsers;
 using BasePlatform.Application.Features.Users.GetCurrentUser;
 using BasePlatform.Application.Features.Users.GetUserById;
 using BasePlatform.Application.Features.Users.UpdateProfile;
+using BasePlatform.Application.Features.Users.UploadProfilePhoto;
 using BasePlatform.Infrastructure.Authentication;
 using BasePlatform.Infrastructure.Authorization;
 using BasePlatform.Infrastructure.Dispatcher;
 using BasePlatform.Infrastructure.Email;
+using BasePlatform.Infrastructure.Files;
 using BasePlatform.Infrastructure.Identity;
 using BasePlatform.Infrastructure.Persistence;
 using BasePlatform.Infrastructure.Persistence.Dapper;
@@ -100,6 +104,7 @@ public static class InfrastructureServiceExtensions
         // Services
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUser, CurrentUserService>();
+        services.AddScoped<IFileAccessService, FileAccessService>();
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
         services.AddScoped<IAuditService, AuditService>();
         services.AddScoped<IEmailService, SmtpEmailService>();
@@ -161,7 +166,9 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IQueryHandler<GetCurrentUserQuery, Result<UserProfileResponse>>, GetCurrentUserQueryHandler>();
         services.AddScoped<IQueryHandler<GetUserByIdQuery, Result<UserProfileResponse>>, GetUserByIdQueryHandler>();
         services.AddScoped<IQueryHandler<GetAllUsersQuery, Result<PaginatedResult<UserSummaryDto>>>, GetAllUsersQueryHandler>();
-        services.AddScoped<ICommandHandler<UpdateProfileCommand, Result>, UpdateProfileCommandHandler>();
+        services.AddScoped<ICommandHandler<UpdateProfileCommand, Result<UserProfileResponse>>, UpdateProfileCommandHandler>();
+        services.AddScoped<ICommandHandler<CreateUserCommand, Result<UserProfileResponse>>, CreateUserCommandHandler>();
+        services.AddScoped<ICommandHandler<UploadProfilePhotoCommand, Result<UploadProfilePhotoResponse>>, UploadProfilePhotoCommandHandler>();
         services.AddScoped<ICommandHandler<ChangePasswordCommand, Result>, ChangePasswordCommandHandler>();
         services.AddScoped<ICommandHandler<DeactivateUserCommand, Result>, DeactivateUserCommandHandler>();
         services.AddScoped<ICommandHandler<AssignRoleCommand, Result>, AssignRoleCommandHandler>();
@@ -184,8 +191,9 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<ICommandHandler<UpsertSettingCommand, Result>, UpsertSettingCommandHandler>();
 
         // Files Query Handlers
-        services.AddScoped<IQueryHandler<GetFileByIdQuery, Result<StoredFileDto>>, GetFileByIdQueryHandler>();
-        services.AddScoped<IQueryHandler<GetFilesQuery, Result<PaginatedResult<StoredFileDto>>>, GetFilesQueryHandler>();
+        services.AddScoped<IQueryHandler<GetFileByIdQuery, Result<StoredFilePublicDto>>, GetFileByIdQueryHandler>();
+        services.AddScoped<IQueryHandler<DownloadFileQuery, Result<StoredFileDto>>, DownloadFileQueryHandler>();
+        services.AddScoped<IQueryHandler<GetFilesQuery, Result<PaginatedResult<StoredFilePublicDto>>>, GetFilesQueryHandler>();
 
         // Files Command Handlers
         services.AddScoped<ICommandHandler<UploadFileCommand, Result<UploadFileResponse>>, UploadFileCommandHandler>();
@@ -207,6 +215,8 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IValidator<SendPhoneLoginCodeCommand>, SendPhoneLoginCodeCommandValidator>();
         services.AddScoped<IValidator<VerifyPhoneLoginCommand>, VerifyPhoneLoginCommandValidator>();
         services.AddScoped<IValidator<ChangePasswordCommand>, ChangePasswordCommandValidator>();
+        services.AddScoped<IValidator<UpdateProfileCommand>, UpdateProfileCommandValidator>();
+        services.AddScoped<IValidator<CreateUserCommand>, CreateUserCommandValidator>();
         services.AddScoped<IValidator<AssignRoleCommand>, AssignRoleCommandValidator>();
         services.AddScoped<IValidator<CreateRoleCommand>, CreateRoleCommandValidator>();
         services.AddScoped<IValidator<UpdateRoleCommand>, UpdateRoleCommandValidator>();

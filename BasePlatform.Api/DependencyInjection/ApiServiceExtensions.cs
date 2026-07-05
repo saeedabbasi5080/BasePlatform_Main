@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Text;
+using System.Text.Json.Serialization;
 using BasePlatform.Api.Common;
 using BasePlatform.Api.Configuration;
 using BasePlatform.Domain.Constants;
@@ -18,7 +19,11 @@ public static class ApiServiceExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddControllers();
+        services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
 
         // Make the framework's automatic model-validation 400s use the uniform error envelope.
         services.Configure<ApiBehaviorOptions>(options =>

@@ -1,6 +1,7 @@
 using BasePlatform.Admin.Configuration;
 using BasePlatform.Application.Common.Abstractions;
 using BasePlatform.Application.Features.Files.DeleteFile;
+using BasePlatform.Application.Features.Files.DownloadFile;
 using BasePlatform.Application.Features.Files.GetFileById;
 using BasePlatform.Application.Features.Files.GetFiles;
 using BasePlatform.Application.Features.Files.UploadFile;
@@ -64,7 +65,7 @@ public sealed class AdminFilesController : ControllerBase
     [Authorize(Policy = Permissions.FilesList)]
     public async Task<IActionResult> DownloadFile(Guid id, CancellationToken cancellationToken)
     {
-        var metaResult = await _dispatcher.QueryAsync(new GetFileByIdQuery(id), cancellationToken);
+        var metaResult = await _dispatcher.QueryAsync(new DownloadFileQuery(id), cancellationToken);
         if (!metaResult.IsSuccess)
             return Problem(metaResult);
 

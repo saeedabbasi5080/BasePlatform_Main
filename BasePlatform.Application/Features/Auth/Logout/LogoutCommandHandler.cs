@@ -16,6 +16,9 @@ public sealed class LogoutCommandHandler : ICommandHandler<LogoutCommand, Result
         LogoutCommand command,
         CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(command.RefreshToken))
+            return Result.Success();
+
         // Idempotent: revoke by refresh-token hash; no Bearer header required.
         var tokenHash = _refreshTokenService.HashToken(command.RefreshToken);
         await _refreshTokenService.RevokeByHashAsync(tokenHash, cancellationToken);

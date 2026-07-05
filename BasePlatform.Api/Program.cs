@@ -50,6 +50,16 @@ try
     }
 
     app.UseHttpsRedirection();
+
+    app.Use(async (context, next) =>
+    {
+        context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+        context.Response.Headers["X-Frame-Options"] = "DENY";
+        context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+        context.Response.Headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
+        await next();
+    });
+
     app.UseCors("DefaultPolicy");
     app.UseAuthentication();
     app.UseAuthorization();
@@ -57,7 +67,7 @@ try
     app.MapHealthChecks("/health");
 
     Log.Information("BasePlatform.Api started on {Urls}",
-        string.Join(", ", builder.WebHost.GetSetting("urls")?.Split(";") ?? ["http://localhost:5273"]));
+        string.Join(", ", builder.WebHost.GetSetting("urls")?.Split(";") ?? ["http://localhost:5280"]));
 
     if (app.Environment.IsDevelopment())
     {

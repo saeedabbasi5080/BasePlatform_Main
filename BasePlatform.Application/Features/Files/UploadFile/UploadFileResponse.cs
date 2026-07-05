@@ -6,6 +6,5 @@ public sealed record UploadFileResponse(
     string OriginalFileName,
     string ContentType,
     long FileSizeBytes,
-    string StoragePath,
     string StorageProvider,
     DateTimeOffset CreatedAt);

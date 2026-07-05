@@ -20,7 +20,9 @@ public sealed class GetAuditLogsQueryHandler
         GetAuditLogsQuery query,
         CancellationToken cancellationToken = default)
     {
-        var offset = (query.Page - 1) * query.PageSize;
+        var page = PaginationLimits.NormalizePage(query.Page);
+        var pageSize = PaginationLimits.NormalizePageSize(query.PageSize);
+        var offset = (page - 1) * pageSize;
 
         var whereClause = BuildWhereClause(query);
 
@@ -49,7 +51,7 @@ public sealed class GetAuditLogsQueryHandler
 
         var parameters = new DynamicParameters();
         parameters.Add("Offset", offset);
-        parameters.Add("PageSize", query.PageSize);
+        parameters.Add("PageSize", pageSize);
 
         if (!string.IsNullOrWhiteSpace(query.ActorEmail))
             parameters.Add("ActorEmail", $"%{query.ActorEmail}%");
@@ -73,8 +75,8 @@ public sealed class GetAuditLogsQueryHandler
 
         var result = new PaginatedResult<AuditLogDto>(
             items.ToList(),
-            query.Page,
-            query.PageSize,
+            page,
+            pageSize,
             totalCount);
 
         return Result<PaginatedResult<AuditLogDto>>.Success(result);

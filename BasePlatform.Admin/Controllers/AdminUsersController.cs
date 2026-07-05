@@ -1,6 +1,7 @@
 ﻿using BasePlatform.Admin.Configuration;
 using BasePlatform.Application.Common.Abstractions;
 using BasePlatform.Application.Features.Users.AssignRole;
+using BasePlatform.Application.Features.Users.CreateUser;
 using BasePlatform.Application.Features.Users.DeactivateUser;
 using BasePlatform.Application.Features.Users.GetAllUsers;
 using BasePlatform.Application.Features.Users.GetUserById;
@@ -36,6 +37,19 @@ public sealed class AdminUsersController : ControllerBase
             new GetAllUsersQuery(page, pageSize, search), cancellationToken);
 
         return result.IsSuccess ? Ok(result.Value) : Problem(result);
+    }
+
+    // POST admin/users
+    [HttpPost]
+    [Authorize(Policy = Permissions.UsersCreate)]
+    public async Task<IActionResult> CreateUser(
+        [FromBody] CreateUserCommand command,
+        CancellationToken cancellationToken)
+    {
+        var result = await _dispatcher.SendAsync(command, cancellationToken);
+        return result.IsSuccess
+            ? CreatedAtAction(nameof(GetUserById), new { id = result.Value!.Id }, result.Value)
+            : Problem(result);
     }
 
     // GET admin/users/{id}

@@ -1,4 +1,4 @@
-@BasePlatform.Admin_HostAddress = http://localhost:5239
+@BasePlatform.Admin_HostAddress = http://localhost:5281
 
 GET {{BasePlatform.Admin_HostAddress}}/weatherforecast/
 Accept: application/json

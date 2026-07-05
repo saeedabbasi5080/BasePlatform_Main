@@ -47,10 +47,12 @@ public sealed class AuthController : ApiControllerBase
     [HttpPost("logout")]
     [AllowAnonymous]
     public async Task<IActionResult> Logout(
-        [FromBody] LogoutCommand command,
+        [FromBody] LogoutCommand? command,
         CancellationToken cancellationToken)
     {
-        var result = await _dispatcher.SendAsync(command, cancellationToken);
+        var result = await _dispatcher.SendAsync(
+            new LogoutCommand(command?.RefreshToken ?? string.Empty),
+            cancellationToken);
         return result.IsSuccess ? NoContent() : Problem(result);
     }
 

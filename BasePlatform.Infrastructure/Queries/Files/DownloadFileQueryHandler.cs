@@ -1,4 +1,5 @@
-﻿using BasePlatform.Application.Common.Abstractions;
+using BasePlatform.Application.Common.Abstractions;
+using BasePlatform.Application.Features.Files.DownloadFile;
 using BasePlatform.Application.Features.Files.GetFileById;
 using BasePlatform.Infrastructure.Persistence.Dapper;
 using BasePlatform.Shared;
@@ -6,13 +7,13 @@ using Dapper;
 
 namespace BasePlatform.Infrastructure.Queries.Files;
 
-public sealed class GetFileByIdQueryHandler
-    : IQueryHandler<GetFileByIdQuery, Result<StoredFilePublicDto>>
+public sealed class DownloadFileQueryHandler
+    : IQueryHandler<DownloadFileQuery, Result<StoredFileDto>>
 {
     private readonly IDapperQueryConnection _db;
     private readonly IFileAccessService _fileAccess;
 
-    public GetFileByIdQueryHandler(
+    public DownloadFileQueryHandler(
         IDapperQueryConnection db,
         IFileAccessService fileAccess)
     {
@@ -20,8 +21,8 @@ public sealed class GetFileByIdQueryHandler
         _fileAccess = fileAccess;
     }
 
-    public async Task<Result<StoredFilePublicDto>> HandleAsync(
-        GetFileByIdQuery query,
+    public async Task<Result<StoredFileDto>> HandleAsync(
+        DownloadFileQuery query,
         CancellationToken cancellationToken = default)
     {
         const string sql = """
@@ -45,25 +46,17 @@ public sealed class GetFileByIdQueryHandler
 
         if (file is null)
         {
-            return Result<StoredFilePublicDto>.Failure(
+            return Result<StoredFileDto>.Failure(
                 Error.NotFound("Files.NotFound", "File not found."));
         }
 
         if (!await _fileAccess.CanReadAsync(
                 file.Id, file.UploadedByUserId, cancellationToken))
         {
-            return Result<StoredFilePublicDto>.Failure(
+            return Result<StoredFileDto>.Failure(
                 Error.Forbidden("Files.AccessDenied", "You do not have access to this file."));
         }
 
-        return Result<StoredFilePublicDto>.Success(new StoredFilePublicDto(
-            file.Id,
-            file.FileName,
-            file.OriginalFileName,
-            file.ContentType,
-            file.FileSizeBytes,
-            file.StorageProvider,
-            file.UploadedByUserId,
-            file.CreatedAt));
+        return Result<StoredFileDto>.Success(file);
     }
 }

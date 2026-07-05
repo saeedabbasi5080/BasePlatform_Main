@@ -45,7 +45,7 @@ public sealed class ExceptionHandlingMiddleware
             ArgumentException => (
                 HttpStatusCode.BadRequest,
                 "Request.InvalidArgument",
-                exception.Message),
+                "The request contains an invalid argument."),
 
             UnauthorizedAccessException => (
                 HttpStatusCode.Unauthorized,

@@ -1,4 +1,5 @@
-﻿using BasePlatform.Application.Common.Abstractions;
+﻿using BasePlatform.Application.Common;
+using BasePlatform.Application.Common.Abstractions;
 using BasePlatform.Domain.Entities;
 using BasePlatform.Shared;
 using Microsoft.AspNetCore.Identity;
@@ -10,19 +11,26 @@ public sealed class AssignRoleCommandHandler
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly RoleManager<AppRole> _roleManager;
+    private readonly ICurrentUser _currentUser;
 
     public AssignRoleCommandHandler(
         UserManager<AppUser> userManager,
-        RoleManager<AppRole> roleManager)
+        RoleManager<AppRole> roleManager,
+        ICurrentUser currentUser)
     {
         _userManager = userManager;
         _roleManager = roleManager;
+        _currentUser = currentUser;
     }
 
     public async Task<Result> HandleAsync(
         AssignRoleCommand command,
         CancellationToken cancellationToken = default)
     {
+        var privilegedCheck = RolePolicy.ValidatePrivilegedRoleAssignment(
+            _currentUser, command.RoleName);
+        if (privilegedCheck is not null)
+            return privilegedCheck;
         var user = await _userManager.FindByIdAsync(command.UserId.ToString());
         if (user is null || !user.IsActive)
             return Result.Failure(

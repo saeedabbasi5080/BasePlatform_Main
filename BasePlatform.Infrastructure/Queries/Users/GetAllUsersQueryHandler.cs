@@ -20,22 +20,29 @@ public sealed class GetAllUsersQueryHandler
         GetAllUsersQuery query,
         CancellationToken cancellationToken = default)
     {
-        var offset = (query.Page - 1) * query.PageSize;
+        var page = PaginationLimits.NormalizePage(query.Page);
+        var pageSize = PaginationLimits.NormalizePageSize(query.PageSize);
+        var offset = (page - 1) * pageSize;
 
         var sql = """
             SELECT
                 u.Id,
                 u.FirstName,
                 u.LastName,
-                u.DisplayName,
+                u.UserName AS Username,
                 u.Email,
+                u.PhoneNumber,
+                u.JobTitle,
                 u.IsActive,
-                u.CreatedAt
+                u.CreatedAt,
+                u.UpdatedAt
             FROM AspNetUsers u
             WHERE (@Search IS NULL
                 OR u.Email LIKE '%' + @Search + '%'
                 OR u.FirstName LIKE '%' + @Search + '%'
-                OR u.LastName LIKE '%' + @Search + '%')
+                OR u.LastName LIKE '%' + @Search + '%'
+                OR u.UserName LIKE '%' + @Search + '%'
+                OR u.PhoneNumber LIKE '%' + @Search + '%')
             ORDER BY u.CreatedAt DESC
             OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 
@@ -44,7 +51,9 @@ public sealed class GetAllUsersQueryHandler
             WHERE (@Search IS NULL
                 OR u.Email LIKE '%' + @Search + '%'
                 OR u.FirstName LIKE '%' + @Search + '%'
-                OR u.LastName LIKE '%' + @Search + '%');
+                OR u.LastName LIKE '%' + @Search + '%'
+                OR u.UserName LIKE '%' + @Search + '%'
+                OR u.PhoneNumber LIKE '%' + @Search + '%');
             """;
 
         using var connection = _db.CreateConnection();
@@ -52,13 +61,13 @@ public sealed class GetAllUsersQueryHandler
         {
             Search = query.Search,
             Offset = offset,
-            PageSize = query.PageSize
+            PageSize = pageSize
         });
 
         var users = (await multi.ReadAsync<UserSummaryDto>()).ToList();
         var totalCount = await multi.ReadFirstAsync<int>();
 
         return Result<PaginatedResult<UserSummaryDto>>.Success(
-            new PaginatedResult<UserSummaryDto>(users, query.Page, query.PageSize, totalCount));
+            new PaginatedResult<UserSummaryDto>(users, page, pageSize, totalCount));
     }
 }

@@ -57,7 +57,7 @@ try
     app.MapHealthChecks("/health");
 
     Log.Information("BasePlatform.Admin started on {Urls}",
-        string.Join(", ", builder.WebHost.GetSetting("urls")?.Split(";") ?? ["https://localhost:7135"]));
+        string.Join(", ", builder.WebHost.GetSetting("urls")?.Split(";") ?? ["https://localhost:7281"]));
 
     await app.RunAsync();
 }
